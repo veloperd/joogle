@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사용자 정보</title>
+</head>
+<body>
+    <h1>사용자 정보</h1>
+    
+    <!-- 사용자 이름만 표시 -->
+    <p><strong>현재 사용자 이름:</strong> {{ username }}</p>
+
+    <p><strong>IP 주소:</strong> <span id="ip"></span></p>
+    <p><strong>ISP:</strong> <span id="isp"></span></p>
+    <p><strong>국가:</strong> <span id="country"></span></p>
+    <p><strong>도시:</strong> <span id="city"></span></p>
+    <p><strong>기기 정보:</strong> <span id="user_agent"></span></p>
+    <p><strong>IP 기반 위도:</strong> <span id="ip_lat"></span></p>
+    <p><strong>IP 기반 경도:</strong> <span id="ip_lon"></span></p>
+
+    <h2>GPS 기반 위치</h2>
+    <p><strong>GPS 위도:</strong> <span id="gps_lat"></span></p>
+    <p><strong>GPS 경도:</strong> <span id="gps_lon"></span></p>
+
+    <script>
+        // 서버에서 IP, ISP, 기기 정보 가져오기
+        fetch('/get_info')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("ip").innerText = data.ip;
+                document.getElementById("isp").innerText = data.isp;
+                document.getElementById("country").innerText = data.country;
+                document.getElementById("city").innerText = data.city;
+                document.getElementById("user_agent").innerText = data.user_agent;
+                document.getElementById("ip_lat").innerText = data.latitude;
+                document.getElementById("ip_lon").innerText = data.longitude;
+            })
+            .catch(error => console.error("IP 정보 가져오는 중 오류 발생:", error));
+
+        // GPS 정보 가져오기
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                document.getElementById("gps_lat").innerText = position.coords.latitude;
+                document.getElementById("gps_lon").innerText = position.coords.longitude;
+            }, function(error) {
+                console.error("GPS 정보를 가져오는 중 오류 발생:", error);
+            });
+        } else {
+            alert("GPS를 지원하지 않는 브라우저입니다.");
+        }
+    </script>
+</body>
+</html>
