@@ -3,44 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>사용자 정보 확인</title>
+    <title>사용자 정보</title>
 </head>
 <body>
     <h1>사용자 정보</h1>
 
+    <!-- 정보를 표시할 요소 -->
     <p id="ip">IP 주소: 가져오는 중...</p>
     <p id="location">IP 기반 위치: 가져오는 중...</p>
     <p id="isp">ISP: 가져오는 중...</p>
-    
+    <p id="device">기기 정보: 가져오는 중...</p>
+    <p id="os">운영체제: 가져오는 중...</p>
+    <p id="username">사용자 이름: 가져오는 중...</p>
     <p id="gps">GPS 위치: 가져오는 중...</p>
-    
+
+    <!-- JavaScript 코드 -->
     <script>
-        // 클라이언트 IP 가져오기
-        fetch("https://api64.ipify.org?format=json")
+        // Flask 서버에서 IP 기반 정보 가져오기
+        fetch('/get_info')
             .then(response => response.json())
             .then(data => {
-                document.getElementById("ip").innerText = "IP 주소: " + data.ip;
-                
-                // Flask 서버에서 IP 기반 위치 정보 가져오기
-                fetch("/get_info")
-                    .then(response => response.json())
-                    .then(info => {
-                        document.getElementById("location").innerText = 
-                            "IP 기반 위치: " + info.city + ", " + info.region + ", " + info.country;
-                        document.getElementById("isp").innerText = "ISP: " + info.isp;
-                    });
+                document.getElementById("ip").innerText = "IP 주소: " + data.client_ip;
+                document.getElementById("location").innerText = 
+                    "IP 기반 위치: " + data.city + ", " + data.region + ", " + data.country;
+                document.getElementById("isp").innerText = "ISP: " + data.isp;
+                document.getElementById("device").innerText = "기기 정보: " + data.user_agent;
+                document.getElementById("os").innerText = "운영체제: " + data.os + " (" + data.os_version + ")";
+                document.getElementById("username").innerText = "서버 사용자 이름: " + data.server_user;
             });
 
         // GPS 위치 가져오기
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-                let lat = position.coords.latitude;
-                let lon = position.coords.longitude;
-                document.getElementById("gps").innerHTML = 
-                    `GPS 위치: ${lat}, ${lon} (<a href="https://www.google.com/maps?q=${lat},${lon}" target="_blank">지도 보기</a>)`;
-            }, function(error) {
-                document.getElementById("gps").innerText = "GPS 위치를 가져올 수 없습니다.";
-            });
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    let lat = position.coords.latitude;
+                    let lon = position.coords.longitude;
+                    document.getElementById("gps").innerHTML = 
+                        `GPS 위치: ${lat}, ${lon} (<a href="https://www.google.com/maps?q=${lat},${lon}" target="_blank">지도 보기</a>)`;
+                },
+                function(error) {
+                    document.getElementById("gps").innerText = "GPS 정보를 가져올 수 없습니다.";
+                }
+            );
         } else {
             document.getElementById("gps").innerText = "이 브라우저는 GPS를 지원하지 않습니다.";
         }
