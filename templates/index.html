@@ -8,28 +8,19 @@
 <body>
     <h1>사용자 정보</h1>
 
-    <!-- 정보를 표시할 요소 -->
     <p id="ip">IP 주소: 가져오는 중...</p>
-    <p id="location">IP 기반 위치: 가져오는 중...</p>
     <p id="isp">ISP: 가져오는 중...</p>
     <p id="device">기기 정보: 가져오는 중...</p>
-    <p id="os">운영체제: 가져오는 중...</p>
-    <p id="username">사용자 이름: 가져오는 중...</p>
     <p id="gps">GPS 위치: 가져오는 중...</p>
 
-    <!-- JavaScript 코드 -->
     <script>
-        // Flask 서버에서 IP 기반 정보 가져오기
+        // Flask 서버에서 IP 및 ISP 정보 가져오기
         fetch('/get_info')
             .then(response => response.json())
             .then(data => {
                 document.getElementById("ip").innerText = "IP 주소: " + data.client_ip;
-                document.getElementById("location").innerText = 
-                    "IP 기반 위치: " + data.city + ", " + data.region + ", " + data.country;
                 document.getElementById("isp").innerText = "ISP: " + data.isp;
                 document.getElementById("device").innerText = "기기 정보: " + data.user_agent;
-                document.getElementById("os").innerText = "운영체제: " + data.os + " (" + data.os_version + ")";
-                document.getElementById("username").innerText = "서버 사용자 이름: " + data.server_user;
             });
 
         // GPS 위치 가져오기
