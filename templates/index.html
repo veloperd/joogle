@@ -3,51 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>사용자 정보</title>
+    <title>사용자 정보 확인</title>
 </head>
 <body>
     <h1>사용자 정보</h1>
+
+    <p id="ip">IP 주소: 가져오는 중...</p>
+    <p id="location">IP 기반 위치: 가져오는 중...</p>
+    <p id="isp">ISP: 가져오는 중...</p>
     
-    <!-- 사용자 이름만 표시 -->
-    <p><strong>현재 사용자 이름:</strong> {{ username }}</p>
-
-    <p><strong>IP 주소:</strong> <span id="ip"></span></p>
-    <p><strong>ISP:</strong> <span id="isp"></span></p>
-    <p><strong>국가:</strong> <span id="country"></span></p>
-    <p><strong>도시:</strong> <span id="city"></span></p>
-    <p><strong>기기 정보:</strong> <span id="user_agent"></span></p>
-    <p><strong>IP 기반 위도:</strong> <span id="ip_lat"></span></p>
-    <p><strong>IP 기반 경도:</strong> <span id="ip_lon"></span></p>
-
-    <h2>GPS 기반 위치</h2>
-    <p><strong>GPS 위도:</strong> <span id="gps_lat"></span></p>
-    <p><strong>GPS 경도:</strong> <span id="gps_lon"></span></p>
-
+    <p id="gps">GPS 위치: 가져오는 중...</p>
+    
     <script>
-        // 서버에서 IP, ISP, 기기 정보 가져오기
-        fetch('/get_info')
+        // 클라이언트 IP 가져오기
+        fetch("https://api64.ipify.org?format=json")
             .then(response => response.json())
             .then(data => {
-                document.getElementById("ip").innerText = data.ip;
-                document.getElementById("isp").innerText = data.isp;
-                document.getElementById("country").innerText = data.country;
-                document.getElementById("city").innerText = data.city;
-                document.getElementById("user_agent").innerText = data.user_agent;
-                document.getElementById("ip_lat").innerText = data.latitude;
-                document.getElementById("ip_lon").innerText = data.longitude;
-            })
-            .catch(error => console.error("IP 정보 가져오는 중 오류 발생:", error));
+                document.getElementById("ip").innerText = "IP 주소: " + data.ip;
+                
+                // Flask 서버에서 IP 기반 위치 정보 가져오기
+                fetch("/get_info")
+                    .then(response => response.json())
+                    .then(info => {
+                        document.getElementById("location").innerText = 
+                            "IP 기반 위치: " + info.city + ", " + info.region + ", " + info.country;
+                        document.getElementById("isp").innerText = "ISP: " + info.isp;
+                    });
+            });
 
-        // GPS 정보 가져오기
-        if ("geolocation" in navigator) {
+        // GPS 위치 가져오기
+        if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
-                document.getElementById("gps_lat").innerText = position.coords.latitude;
-                document.getElementById("gps_lon").innerText = position.coords.longitude;
+                let lat = position.coords.latitude;
+                let lon = position.coords.longitude;
+                document.getElementById("gps").innerHTML = 
+                    `GPS 위치: ${lat}, ${lon} (<a href="https://www.google.com/maps?q=${lat},${lon}" target="_blank">지도 보기</a>)`;
             }, function(error) {
-                console.error("GPS 정보를 가져오는 중 오류 발생:", error);
+                document.getElementById("gps").innerText = "GPS 위치를 가져올 수 없습니다.";
             });
         } else {
-            alert("GPS를 지원하지 않는 브라우저입니다.");
+            document.getElementById("gps").innerText = "이 브라우저는 GPS를 지원하지 않습니다.";
         }
     </script>
 </body>
