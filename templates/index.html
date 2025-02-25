@@ -1,44 +1,30 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>사용자 정보</title>
-</head>
-<body>
-    <h1>사용자 정보</h1>
+@app.route('/get_info', methods=['GET'])
+def get_info():
+    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    user_agent = request.headers.get('User-Agent')
 
-    <p id="ip">IP 주소: 가져오는 중...</p>
-    <p id="isp">ISP: 가져오는 중...</p>
-    <p id="device">기기 정보: 가져오는 중...</p>
-    <p id="gps">GPS 위치: 가져오는 중...</p>
+    public_ip = requests.get('https://api64.ipify.org?format=json').json()['ip']
 
-    <script>
-        // Flask 서버에서 IP 및 ISP 정보 가져오기
-        fetch('/get_info')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("ip").innerText = "IP 주소: " + data.client_ip;
-                document.getElementById("isp").innerText = "ISP: " + data.isp;
-                document.getElementById("device").innerText = "기기 정보: " + data.user_agent;
-            });
+    # IP 조회 API 1 (ip-api.com)
+    ip_api = requests.get(f"http://ip-api.com/json/{public_ip}?fields=query,isp,country,city,lat,lon,status,message").json()
 
-        // GPS 위치 가져오기
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    let lat = position.coords.latitude;
-                    let lon = position.coords.longitude;
-                    document.getElementById("gps").innerHTML = 
-                        `GPS 위치: ${lat}, ${lon} (<a href="https://www.google.com/maps?q=${lat},${lon}" target="_blank">지도 보기</a>)`;
-                },
-                function(error) {
-                    document.getElementById("gps").innerText = "GPS 정보를 가져올 수 없습니다.";
-                }
-            );
-        } else {
-            document.getElementById("gps").innerText = "이 브라우저는 GPS를 지원하지 않습니다.";
-        }
-    </script>
-</body>
-</html>
+    # IP 조회 API 2 (ipinfo.io)
+    ipinfo = requests.get(f"https://ipinfo.io/{public_ip}/json").json()
+
+    ip = ip_api.get("query", client_ip)
+    isp = ip_api.get("isp", "Unknown ISP")
+    country = ip_api.get("country") or ipinfo.get("country", "Unknown")
+    city = ip_api.get("city") or ipinfo.get("city", "Unknown")
+
+    latitude = ip_api.get("lat") or ipinfo.get("loc", "0,0").split(",")[0]
+    longitude = ip_api.get("lon") or ipinfo.get("loc", "0,0").split(",")[1]
+
+    return jsonify({
+        "ip": ip,
+        "isp": isp,
+        "country": country,
+        "city": city,
+        "latitude": latitude,
+        "longitude": longitude,
+        "user_agent": user_agent
+    })
